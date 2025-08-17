@@ -27,7 +27,7 @@ const addStudent = async (req, res) => {
 
 const getStudent = async (req, res) => {
   try {
-      const { usn } = req.params;
+    const { usn } = req.params;
     if (!usn)
       return res
         .status(400)
@@ -47,4 +47,33 @@ const getStudent = async (req, res) => {
   }
 };
 
-export { addStudent, getStudent };
+const updateStudent = async (req, res) => {
+  try {
+    const { usn, name, branch, cgpa, phone } = req.body;
+    if (!usn || !name || !branch || cgpa === undefined || phone === undefined)
+      return res.status(400).json({ message: "All field are required" });
+
+    const [studentExist] = await db.query(
+      "SELECT usn FROM student WHERE usn = ?",
+      [usn]
+    );
+    if (studentExist.length === 0)
+      return res.status(409).json({ message: "Student does not exist" });
+
+    const [result] = await db.query(
+      "UPDATE student SET name = ?, branch = ?, cgpa = ?, phone = ? WHERE usn = ?",
+      [name, branch, cgpa, phone, usn]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(400).json({ message: "Update failed" });
+    }
+
+    return res.status(200).json({ message: "Data updated successfully" });
+  } catch (error) {
+    console.error("Error while updating the data", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { addStudent, getStudent, updateStudent };
