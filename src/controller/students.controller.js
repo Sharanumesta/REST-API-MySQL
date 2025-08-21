@@ -76,4 +76,21 @@ const updateStudent = async (req, res) => {
   }
 };
 
-export { addStudent, getStudent, updateStudent };
+const deleteStudent = async (req, res) => {
+  try {
+    let { usn } = req.params;
+    if (!usn) return res.status(400).json({ message: "USN cannot be empty" });
+    const [row] = await db.query("SELECT usn FROM student WHERE usn = ?", [
+      usn,
+    ]);
+    if (!row.length)
+      return res.status(404).json({ message: "Student doesn't exist" });
+    await db.query("DELETE FROM student WHERE usn = ?", [usn]);
+    return res.status(200).json({ message: "Student deleted successfully" });
+  } catch (error) {
+    console.error("Error while deleting the data", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { addStudent, getStudent, updateStudent, deleteStudent };
